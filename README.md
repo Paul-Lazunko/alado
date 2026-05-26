@@ -823,6 +823,28 @@ setAvatar(req) {
 }
 ```
 
+3. Respond with Stream:
+
+```ts
+@get('/user/:id/avatar', { tags: ['User'] })
+@withAuth(bearerAuth)
+@defineResponse({
+  statusCode: 200,
+  title: 'OK',
+  headers: { 'Content-Type': 'image/png' },
+  body: {},
+})
+@defineRequest({ path: Id })
+public getAvatar(req: Request) {
+  const readStream = createReadStream(`./uploads/user-${req.path.id}.png`);
+  return {
+    statusCode: 200,
+    headers: { 'Content-Type': 'image/png' },
+    body: readStream,
+  };
+}
+```
+
 ---
 
 ## OpenAPI / Swagger
