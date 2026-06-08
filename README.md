@@ -405,7 +405,7 @@ class CredentialsDto {
 
 ## Validation
 
-The project uses a built-in chainable validator — a lightweight Joi-like class with zero dependencies.
+The project uses a built-in chainable validator — a lightweight, zero-dependency TypeScript validation library with sync and async support.
 
 ### Basic usage
 
@@ -421,10 +421,32 @@ const isUsername = validate
   .build();
 const isRole = validate.string().enum('admin', 'user', 'guest').required().build();
 const isAge = validate.number().integer().min(18).max(120).required().build();
-const isId = validate.objectId().required().build();
+const isId = validate.string().objectId().required().build();
 ```
 
-Each chain ends with `.build()` which returns a plain `(input: any) => boolean` function — build once, reuse anywhere.
+Each chain ends with `.build()` which returns `(input: any) => Promise<boolean>` — build once, reuse anywhere. For sync-only rules use `.buildSync()` to get a plain `boolean`.
+
+---
+
+### Entry points
+
+```ts
+validate.string(); // starts a string validator
+validate.number(); // starts a number validator
+validate.boolean(); // starts a boolean validator
+validate.array(); // starts an array validator
+validate.object(); // starts an object validator
+validate.custom(fn); // starts with a custom rule
+```
+
+---
+
+### Modifiers
+
+| Method        | Description                                                |
+| ------------- | ---------------------------------------------------------- |
+| `.required()` | Input must be non-empty (not `null`, `undefined`, or `""`) |
+| `.optional()` | Input may be absent — skips all rules if empty (default)   |
 
 ---
 
@@ -432,13 +454,13 @@ Each chain ends with `.build()` which returns a plain `(input: any) => boolean` 
 
 **Type**
 
-| Method      | Description                |
-| ----------- | -------------------------- |
-| `string()`  | Must be a string           |
-| `number()`  | Must be a number (not NaN) |
-| `boolean()` | Must be a boolean          |
-| `array()`   | Must be an array           |
-| `object()`  | Must be a plain object     |
+| Method      | Description                                  |
+| ----------- | -------------------------------------------- |
+| `string()`  | Must be a string                             |
+| `number()`  | Must be a number (not NaN)                   |
+| `boolean()` | Must be a boolean                            |
+| `array()`   | Must be an array                             |
+| `object()`  | Must be a plain object (not array, not null) |
 
 **String**
 
@@ -447,35 +469,37 @@ Each chain ends with `.build()` which returns a plain `(input: any) => boolean` 
 | `min(n)`         | Min length (string) or min value (number) |
 | `max(n)`         | Max length (string) or max value (number) |
 | `length(n)`      | Exact length                              |
-| `regex(pattern)` | Must match pattern                        |
+| `regex(pattern)` | Must match RegExp                         |
 | `email()`        | Valid email format                        |
 | `uuid()`         | Valid UUID v4                             |
 | `objectId()`     | Valid MongoDB ObjectId (24-char hex)      |
-| `url()`          | Valid URL                                 |
-| `trim()`         | Must have no leading/trailing whitespace  |
+| `url()`          | Valid URL (parsed by `new URL()`)         |
+| `trim()`         | No leading/trailing whitespace            |
 
 **Number**
 
 | Method       | Description        |
 | ------------ | ------------------ |
 | `integer()`  | Must be an integer |
-| `positive()` | Must be > 0        |
-| `negative()` | Must be < 0        |
+| `positive()` | Must be `> 0`      |
+| `negative()` | Must be `< 0`      |
 
 **Generic**
 
-| Method            | Description                                   |
-| ----------------- | --------------------------------------------- |
-| `enum(...values)` | Must be one of the provided values            |
-| `custom(fn)`      | Any custom `(value) => boolean` function      |
-| `required()`      | Reject `null`, `undefined`, and `''`          |
-| `optional()`      | Allow `null`, `undefined`, and `''` (default) |
+| Method            | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| `enum(...values)` | Must be one of the provided values                           |
+| `custom(fn)`      | Any custom `(value) => boolean \| Promise<boolean>` function |
 
 **Object**
 
-| Method          | Description                                  |
-| --------------- | -------------------------------------------- |
-| `shape(schema)` | Validate each key against a nested validator |
+| Method          | Description                                                         |
+| --------------- | ------------------------------------------------------------------- |
+| `shape(schema)` | Validate each key against a nested validator                        |
+| `minKeys(n)`    | Object must have at least `n` keys                                  |
+| `maxKeys(n)`    | Object must have at most `n` keys                                   |
+| `or(...keys)`   | At least one of the listed keys must be present and non-empty       |
+| `xor(...keys)`  | Exactly one of the listed keys must be present (mutually exclusive) |
 
 **Array**
 
@@ -512,7 +536,7 @@ Shapes can be nested to any depth:
 const isUser = validate
   .object()
   .shape({
-    id: validate.objectId().required().build(),
+    id: validate.string().objectId().required().build(),
     email: validate.string().email().required().build(),
     role: validate.string().enum('admin', 'user').required().build(),
     address: validate
@@ -525,6 +549,103 @@ const isUser = validate
   })
   .required()
   .build();
+```
+
+---
+
+### Object key constraints and mutual exclusion
+
+```ts
+// at least one contact method required
+const isContact = validate.object().or('email', 'phone').build();
+
+// exactly one payment method
+const isPayment = validate.object().xor('cardId', 'bankAccount').build();
+
+// bounded key count
+const isMeta = validate.object().minKeys(1).maxKeys(10).build();
+```
+
+---
+
+### Cross-property conditionals
+
+Rules that look at sibling fields. The `root` context is passed automatically through `.shape()`.
+
+#### `.when(key, is, then, otherwise?)`
+
+If `root[key] === is`, apply `then` validator; otherwise apply `otherwise` (optional). `is` can be a single value or an array of values.
+
+```ts
+const isContact = validate
+  .object()
+  .shape({
+    type: validate.string().required().build(),
+    contact: validate
+      .string()
+      .when(
+        'type',
+        'email',
+        validate.string().email().build(), // when type === 'email'
+        validate
+          .string()
+          .regex(/^\+\d+$/)
+          .build(), // otherwise (phone)
+      )
+      .required()
+      .build(),
+  })
+  .build();
+
+await isContact({ type: 'email', contact: 'a@b.com' }); // true
+await isContact({ type: 'phone', contact: '+123456' }); // true
+await isContact({ type: 'email', contact: '+123456' }); // false
+```
+
+Array `is` — match multiple values:
+
+```ts
+validate
+  .string()
+  .when(
+    'role',
+    [
+      'admin',
+      'superadmin',
+    ],
+    allowedFn,
+    restrictedFn,
+  )
+  .build();
+```
+
+#### `.match(key, cases, fallback?)`
+
+Switch-case style — dispatch to different validators based on `root[key]`.
+
+```ts
+const isLevel = validate
+  .object()
+  .shape({
+    role: validate.string().required().build(),
+    level: validate
+      .number()
+      .match(
+        'role',
+        {
+          admin: validate.number().min(5).build(),
+          viewer: validate.number().max(2).build(),
+          editor: validate.number().min(1).max(4).build(),
+        },
+        validate.number().positive().build(),
+      ) // fallback
+      .required()
+      .build(),
+  })
+  .build();
+
+await isLevel({ role: 'admin', level: 7 }); // true
+await isLevel({ role: 'viewer', level: 3 }); // false — max 2
 ```
 
 ---
@@ -547,7 +668,7 @@ const isOrderItems = validate
     validate
       .object()
       .shape({
-        productId: validate.objectId().required().build(),
+        productId: validate.string().objectId().required().build(),
         quantity: validate.number().integer().positive().required().build(),
         price: validate.number().positive().required().build(),
       })
@@ -557,6 +678,46 @@ const isOrderItems = validate
   .minItems(1)
   .required()
   .build();
+```
+
+---
+
+### Async validation
+
+Any rule can return `Promise<boolean>`. Use `.custom()` for async rules.
+
+```ts
+const isAvailableEmail = validate
+  .string()
+  .email()
+  .required()
+  .custom(async (v) => {
+    const taken = await db.users.exists({ email: v });
+    return !taken;
+  })
+  .build();
+
+const ok = await isAvailableEmail('new@example.com');
+```
+
+Rules run sequentially — cheap sync checks short-circuit before any async I/O fires. Inside `.shape()` and `.items()`, field validators run in parallel via `Promise.all`.
+
+---
+
+### Sync mode
+
+If you have no async rules, use `.buildSync()` to get a plain `boolean` without `await`.
+
+```ts
+const isValidName = validate.string().min(2).max(50).buildSync();
+
+isValidName('Pablo'); // true — no await needed
+```
+
+`.buildSync()` throws at runtime if any rule in the chain is async:
+
+```
+Error: Validator contains async rules — use .build() instead of .buildSync()
 ```
 
 ---
