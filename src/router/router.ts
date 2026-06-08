@@ -8,8 +8,17 @@ const pathVariableRegex = /:([^/]+?)+/g;
 
 // TODO: default route 404;
 type RouterUseArgs =
-  | [HttpMethod, string, Context<any>, (request: Request) => void]
-  | [HttpMethod, string, (request: Request) => void];
+  | [
+      HttpMethod,
+      string,
+      Context<any>,
+      (request: Request) => void,
+    ]
+  | [
+      HttpMethod,
+      string,
+      (request: Request) => void,
+    ];
 export class Router {
   private routes: Map<RegExp, Route<any>> = new Map<RegExp, Route<any>>();
   public readonly options: RouterOptions;
