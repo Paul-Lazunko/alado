@@ -931,6 +931,56 @@ export const optionalAuth: RequestAuthentication = {
 
 ---
 
+## Access Control
+
+The `@accessControl` decorator enables fine-grained permission checking on route handlers by comparing values from the request against expected values.
+
+### Configuration
+
+```typescript
+export type AccessControlConfig<T> = {
+  inputProperty: string; // Property path to extract from request (e.g., 'auth.user.id')
+  transformInputProperty?: (inputPropertyValue: unknown) => T | Promise<T>; // Optional transform
+  compareWithProperty?: string; // Property path to compare against
+  expectedValue?: T; // Expected value (if not using compareWithProperty)
+  statusCode: number; // HTTP status on access denial
+  message: string; // Error message on denial
+};
+```
+
+Either provide `compareWithProperty` to compare two request values, or `expectedValue` to check against a fixed value.
+
+### Usage Example
+
+```typescript
+@patch('/user/:id', { tags: ['User'] })
+@accessControl([{
+  inputProperty: 'auth.user.id',
+  transformInputProperty: async (v: unknown) => v.toString(),
+  compareWithProperty: 'path.id',
+  statusCode: 403,
+  message: 'Access Denied'
+}])
+@withAuth(bearerAuth)
+public async update(req: Request) {
+  // Only allow users to update their own profile
+  const { path, body } = req;
+  const user = DataStore.getUser(path.id);
+  if (user) {
+    DataStore.setUser(path.id, body as UserDto);
+  }
+  return { statusCode: user ? 200 : 404, body: user || { message: 'Not Found' } };
+}
+```
+
+In this example, the decorator ensures `auth.user.id` matches `path.id` before the handler executes. If access is denied, a 403 response is returned.
+
+### Multiple Rules
+
+Pass multiple configs to `@accessControl([...])` to enforce multiple access rules - all must pass for the request to proceed.
+
+---
+
 ## File Uploads
 
 1. Define a files DTO:
