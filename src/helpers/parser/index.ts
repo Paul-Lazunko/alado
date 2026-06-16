@@ -1,3 +1,4 @@
+export * from './access-control-checker';
 export * from './authenticate';
 export * from './body-parser';
 export * from './query-parser';
