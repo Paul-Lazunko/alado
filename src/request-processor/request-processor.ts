@@ -6,6 +6,7 @@ import { ContentType, HttpMethod } from '@const';
 import { RequestProcessorOptions } from '@options';
 import { AladoServerError, ContextRequest, Request, Response } from '@dto';
 import {
+  accessControlChecker,
   authenticate,
   bodyParser,
   queryParser,
@@ -182,6 +183,13 @@ export class RequestProcessor {
           const authError: AladoServerError = await authenticate(context, request);
           if (authError) {
             return this.respondError(res, authError, backgroundHeaders);
+          }
+        }
+        // Access control
+        if (Array.isArray(context.accessControl) && context.accessControl.length) {
+          const accessError = await accessControlChecker(context, request);
+          if (accessError) {
+            return this.respondError(res, accessError, backgroundHeaders);
           }
         }
         // Validate request
