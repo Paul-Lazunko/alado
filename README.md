@@ -19,6 +19,7 @@
   - [defineRequest](#definerequest)
   - [defineResponse](#defineresponse)
   - [withAuth](#withauth)
+  - [accessControl](#acesscontrol)
 - [DTOs](#dtos)
   - [validateProperty](#validateproperty)
   - [validation](#validation)
@@ -26,6 +27,7 @@
   - [transformProperty](#transformproperty)
   - [fileUploadProperty](#fileuploadproperty)
 - [Authentication](#authentication)
+- [Access Control](#accesscontrol)
 - [File Uploads](#file-uploads)
 - [OpenAPI / Swagger](#openapi--swagger)
 - [API Reference](#api-reference)
@@ -301,6 +303,32 @@ async update(req: Request) {
 ```
 
 See [Authentication](#authentication) for full config details.
+
+---
+
+### `accessControl`
+
+Attaches an access control pipeline to a route.
+
+```ts
+@patch('/user/:id', { tags: ['User'] })
+@accessControl([
+  {
+    inputProperty: 'auth.user.id',
+    transformInputProperty: async (v: unknown) => v.toString(),
+    compareWithProperty: 'path.id',
+    statusCode: 403,
+    message: 'Access Denied',
+  },
+])
+@withAuth(bearerAuth)
+@defineRequest({ path: Id, body: UserDto })
+async update(req: Request) {
+  console.log(req.auth.user); // injected by the auth handler
+}
+```
+
+See [Access Control](#accesscontrol) for full config details.
 
 ---
 
