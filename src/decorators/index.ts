@@ -4,6 +4,7 @@ export * from './validate-property';
 export * from './transform-property';
 export * from './file-upload-property';
 export * from './with-auth';
+export * from './access-control';
 export * from './define-request';
 export * from './define-response';
 export * from './http';
