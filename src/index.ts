@@ -21,6 +21,7 @@ export {
   validateProperty,
   transformProperty,
   withAuth,
+  accessControl,
   get,
   del,
   head,
