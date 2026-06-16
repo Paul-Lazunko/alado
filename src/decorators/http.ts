@@ -1,7 +1,7 @@
 import { DEFAULT_ID, HttpMethod } from '@const';
 import { injector } from '@injector';
 import { AladoServer } from '@alado';
-import { HttpDecoratorOptions } from '@options';
+import { ContextOptions, HttpDecoratorOptions } from '@options';
 import { initializeInjector } from './initialize-injector';
 
 function callHttpMethod(httpMethod: HttpMethod, path: string, options: HttpDecoratorOptions = {}) {
@@ -18,15 +18,16 @@ function callHttpMethod(httpMethod: HttpMethod, path: string, options: HttpDecor
         {
           title: options.title || defaultDescription,
           auth: injector.injected.authMapping[key] || undefined,
+          accessControl: injector.injected.accessControlMapping[key] || undefined,
           options: {
-            allowUnknownFields: false as any,
-            isHidden: options.isHidden || (false as any),
+            allowUnknownFields: false,
+            isHidden: options.isHidden || false,
             openApiDoc: {
               description: options.description || defaultDescription,
               operationId: defaultDescription,
               tags: options.tags || [],
             },
-          },
+          } as ContextOptions,
           request: injector.injected.requestMapping[key] || {},
           response: injector.injected.responseMapping[key] || {},
         },
