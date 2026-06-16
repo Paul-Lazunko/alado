@@ -46,6 +46,7 @@ Alado sits in a unique position — it has the **simplicity of Express**, the **
 | Decorator-based routing     | ✅         | ❌                    | ❌                    | ✅          |
 | Built-in request validation | ✅         | ❌                    | ✅ (schemas)          | ✅ (pipes)  |
 | Built-in auth pipeline      | ✅         | ❌                    | ❌                    | ✅ (guards) |
+| Built-in access control     | ✅         | ❌                    | ❌                    | ✅ (guards) |
 | Auto OpenAPI 3.0 docs       | ✅         | ❌                    | ✅ (plugin)           | ✅ (plugin) |
 | Built-in file upload        | ✅         | ❌                    | ❌                    | ❌          |
 | Built-in body parsing       | ✅         | ❌ (body-parser)      | ✅                    | ✅          |
@@ -122,6 +123,8 @@ src/
 │   └── server.options.ts       # AladoServerOptions
 ├── auth/
 │   └── bearer.auth.ts          # RequestAuthentication config
+├── access-control/
+│   └── access-control.ts       # AccessControl decorator & types
 └── modules/
     └── user/
         ├── index.ts
