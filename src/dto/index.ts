@@ -4,6 +4,7 @@ export * from './alado-server-logger';
 export * from './request';
 export * from './response';
 export * from './property-definition';
+export * from './access-control-config';
 export * from './request-authentication';
 export * from './route';
 export * from './open-api-doc-object';
