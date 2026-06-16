@@ -1145,4 +1145,4 @@ The object your handler must return:
 
 ## License
 
-MIT © [Databikers Limited](https://databikers.com)
+MIT © [Data Bikers Limited](https://databikers.com)
