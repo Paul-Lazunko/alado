@@ -67,6 +67,10 @@ export class AladoServer {
     this.router.use(HttpMethod.GET, path, context, handler);
   }
 
+  public query(path: string, context: Context<any>, handler: (request: any) => Response<any> | Promise<Response<any>>) {
+    this.router.use(HttpMethod.QUERY, path, context, handler);
+  }
+
   public post(path: string, context: Context<any>, handler: (request: any) => Response<any> | Promise<Response<any>>) {
     this.router.use(HttpMethod.POST, path, context, handler);
   }
