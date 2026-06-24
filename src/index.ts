@@ -23,6 +23,7 @@ export {
   withAuth,
   accessControl,
   get,
+  query,
   del,
   head,
   patch,
