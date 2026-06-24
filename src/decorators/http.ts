@@ -13,7 +13,7 @@ function callHttpMethod(httpMethod: HttpMethod, path: string, options: HttpDecor
   return function (instance: any, method: string) {
     const key: string = `${instance.constructor.name}.${method}`;
     const fn = (app: AladoServer): void => {
-      app[normalizedMethod as 'post' | 'get' | 'put' | 'patch' | 'delete' | 'head'](
+      app[normalizedMethod as 'post' | 'query' | 'get' | 'put' | 'patch' | 'delete' | 'head'](
         path,
         {
           title: options.title || defaultDescription,
@@ -52,6 +52,10 @@ function callHttpMethod(httpMethod: HttpMethod, path: string, options: HttpDecor
 
 export function get(path: string, options: HttpDecoratorOptions = {}) {
   return callHttpMethod(HttpMethod.GET, path, options);
+}
+
+export function query(path: string, options: HttpDecoratorOptions = {}) {
+  return callHttpMethod(HttpMethod.QUERY, path, options);
 }
 
 export function post(path: string, options: HttpDecoratorOptions = {}) {
