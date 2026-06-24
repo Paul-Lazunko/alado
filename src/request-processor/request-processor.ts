@@ -139,6 +139,7 @@ export class RequestProcessor {
               HttpMethod.PUT,
               HttpMethod.PATCH,
               HttpMethod.POST,
+              HttpMethod.QUERY,
             ] as string[]
           ).includes(method as string)
         ) {
