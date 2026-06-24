@@ -204,12 +204,13 @@ Controllers are plain TypeScript classes decorated with HTTP method decorators.
 ### HTTP Method Decorators
 
 ```ts
-import { get, post, put, patch, del, head } from 'alado';
+import { get, query, post, put, patch, del, head } from 'alado';
 ```
 
 | Decorator                | Method |
 | ------------------------ | ------ |
 | `@get(path, options?)`   | GET    |
+| `@query(path, options?)` | QUERY  |
 | `@post(path, options?)`  | POST   |
 | `@put(path, options?)`   | PUT    |
 | `@patch(path, options?)` | PATCH  |
@@ -219,13 +220,13 @@ import { get, post, put, patch, del, head } from 'alado';
 **Options:**
 
 ```ts
-interface HttpDecoratorOptions {
-  appId?: string; // scope to a specific app instance
-  title?: string; // endpoint name in OpenAPI
-  description?: string; // endpoint description in OpenAPI
-  tags?: string[]; // grouping tags in OpenAPI
-  isHidden?: boolean; // exclude from OpenAPI output
-}
+type HttpDecoratorOptions = {
+  appId?: string;
+  title?: string;
+  description?: string;
+  isHidden?: boolean | undefined;
+  tags?: string[];
+};
 ```
 
 **Example:**
