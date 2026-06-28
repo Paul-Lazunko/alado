@@ -1,6 +1,6 @@
 {
   "name": "alado",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "Extremely fast, lightweight, robust framework for HTTP applications written in Node.js",
   "keywords": [
     "HTTP",
@@ -38,7 +38,7 @@
     "prettier-plugin-multiline-arrays": "4.1.9",
     "tsc-alias": "1.8.17",
     "typescript": "5.9.3",
-    "typescript-eslint": "^8.62"
+    "typescript-eslint": "^8.62.0"
   },
   "repository": {
     "type": "git",
