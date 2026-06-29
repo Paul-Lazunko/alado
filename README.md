@@ -965,22 +965,56 @@ export const optionalAuth: RequestAuthentication = {
 
 ## Access Control
 
-The `@accessControl` decorator enables fine-grained permission checking on route handlers by comparing values from the request against expected values.
+The `@accessControl` decorator provides a flexible and intuitive way to implement permission checking on your route handlers. It allows you to validate that requests meet specific authorization requirements by comparing values from the incoming request against expected values.
 
 ### Configuration
 
 ```typescript
 export type AccessControlConfig<T> = {
-  inputProperty: string; // Property path to extract from request (e.g., 'auth.user.id')
-  transformInputProperty?: (inputPropertyValue: unknown) => T | Promise<T>; // Optional transform
-  compareWithProperty?: string; // Property path to compare against
-  expectedValue?: T; // Expected value (if not using compareWithProperty)
-  statusCode: number; // HTTP status on access denial
-  message: string; // Error message on denial
+  /**
+   * The property path to extract from the request.
+   * Examples: 'auth.user.id'
+   */
+  inputProperty: string;
+
+  /**
+   * Optional transformation function to process the extracted value.
+   * Useful for normalizing or converting data types before comparison.
+   */
+  transformInputProperty?: (inputPropertyValue: unknown) => T | Promise<T>;
+
+  /**
+   * Property path to compare against in the request.
+   * Examples: 'path.id' (URL parameter), 'body.user.id' (request body)
+   */
+  compareWithProperty?: string;
+
+  /**
+   * The expected value to compare against.
+   * Use this if you have a fixed value rather than a dynamic property path.
+   */
+  expectedValue?: T;
+
+  /**
+   * Custom access control handler for complex permission logic.
+   * Receives the extracted input value and should return true if access is granted.
+   */
+  accessControlHandler?: (inputPropertyValue: unknown) => Promise<boolean>;
+
+  /**
+   * HTTP status code to return when access is denied.
+   * Commonly 403 (Forbidden) or 401 (Unauthorized).
+   */
+  statusCode: number;
+
+  /**
+   * User-friendly error message displayed when access is denied.
+   */
+  message: string;
 };
 ```
 
-Either provide `compareWithProperty` to compare two request values, or `expectedValue` to check against a fixed value.
+Either provide `compareWithProperty` to compare two request values, or `expectedValue` to check against a fixed value or `accessControlHandler` to implement complex logic.
 
 ### Usage Example
 
