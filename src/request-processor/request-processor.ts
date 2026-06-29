@@ -221,7 +221,7 @@ export class RequestProcessor {
       }
     } catch (e: any) {
       this.logError(e as Error);
-      return this.respondError(res, { statusCode: e.statusCode || 400, message: e.message }, {});
+      return this.respondError(res, { statusCode: e.statusCode || 500, message: e.message }, {});
     }
   }
 
